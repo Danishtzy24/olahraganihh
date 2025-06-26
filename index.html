@@ -1,19 +1,11 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitTracker - GPS Sports Tracking</title>
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <title>Motion Flow 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <style>
         * {
             margin: 0;
@@ -22,635 +14,840 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        /* Glassmorphic container */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
+        /* Neon glow effects */
+        .neon-cyan {
+            box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+            border: 1px solid #00ffff;
+        }
+
+        .neon-purple {
+            box-shadow: 0 0 20px #8a2be2, 0 0 40px #8a2be2, 0 0 60px #8a2be2;
+            border: 1px solid #8a2be2;
+        }
+
+        .neon-green {
+            box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00, 0 0 60px #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        /* Header */
         .header {
+            padding: 20px;
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            animation: fadeInDown 0.8s ease-out;
+            margin-bottom: 20px;
         }
 
         .header h1 {
             font-size: 2.5rem;
-            font-weight: 700;
+            background: linear-gradient(45deg, #00ffff, #8a2be2, #00ff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
             display: grid;
-            grid-template-columns: 1fr 300px;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
-            animation: fadeInUp 0.8s ease-out 0.2s both;
         }
 
-        .map-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        /* Step counter section */
+        .step-counter {
+            padding: 30px;
+            text-align: center;
+            position: relative;
             overflow: hidden;
+        }
+
+        .step-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+            margin: 20px 0;
+        }
+
+        .step-label {
+            font-size: 1.2rem;
+            color: #cccccc;
+            margin-bottom: 30px;
+        }
+
+        /* Control buttons */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #00ff00, #32cd32);
+        }
+
+        .btn-pause {
+            background: linear-gradient(45deg, #ff9500, #ffa500);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, #ff0040, #ff4757);
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, #8a2be2, #9370db);
+        }
+
+        /* Statistics */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            padding: 15px;
+            text-align: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #cccccc;
+        }
+
+        /* Map section */
+        .map-section {
+            padding: 20px;
+            height: 600px;
             position: relative;
         }
 
         #map {
+            width: 100%;
             height: 500px;
-            width: 100%;
-        }
-
-        .controls-panel {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .control-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 15px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            border-radius: 15px;
             overflow: hidden;
         }
 
-        .start-btn {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
+        .map-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
-        .stop-btn {
-            background: linear-gradient(45deg, #f44336, #da190b);
-            color: white;
-        }
-
-        .save-btn {
-            background: linear-gradient(45deg, #2196F3, #1976D2);
-            color: white;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-
-        .control-btn:active {
-            transform: translateY(0);
-        }
-
-        .stats {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
+        /* Saved tracks */
+        .saved-tracks {
+            grid-column: 1 / -1;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
 
-        .stat-item {
+        .track-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
             transition: all 0.3s ease;
         }
 
-        .stat-item:hover {
-            background: rgba(255,255,255,0.9);
+        .track-item:hover {
+            background: rgba(255, 255, 255, 0.1);
             transform: translateX(5px);
         }
 
-        .stat-label {
-            font-weight: 500;
-            color: #666;
+        .track-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
-        .stat-value {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #333;
+        .track-name {
+            font-weight: bold;
+            color: #00ffff;
         }
 
-        .saved-routes {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .route-item {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .route-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .route-date {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .route-distance {
-            color: #666;
+        .track-stats {
             font-size: 0.9rem;
+            color: #cccccc;
         }
 
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ff4757;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: #ff3742;
-            transform: scale(1.1);
-        }
-
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .status.inactive {
-            background: linear-gradient(45deg, #bdc3c7, #95a5a6);
-            color: white;
-        }
-
-        .status.active {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            z-index: 9999;
-            transform: translateX(400px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-        }
-
-        .notification.error {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-        }
-
+        /* Responsive design */
         @media (max-width: 768px) {
-            .main-content {
+            .container {
                 grid-template-columns: 1fr;
+                padding: 10px;
             }
             
-            .header h1 {
-                font-size: 2rem;
+            .step-display {
+                font-size: 3rem;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+            }
+            
+            .map-section {
+                height: 400px;
             }
             
             #map {
-                height: 400px;
+                height: 300px;
             }
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+        /* Animation for step counter */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .step-display.animate {
+            animation: pulse 0.3s ease;
+        }
+
+        /* Status indicator */
+        .status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status.active {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .status.paused {
+            background: #ffa500;
+            box-shadow: 0 0 10px #ffa500;
+        }
+
+        .status.stopped {
+            background: #ff4757;
+            box-shadow: 0 0 10px #ff4757;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1><i class="fas fa-running"></i>Motion Flow 2.0</h1>
+        <p></p>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-running"></i> FitTracker</h1>
-            <p>Track your sports activities with GPS precision</p>
+        <!-- Step Counter Section -->
+        <div class="step-counter glass neon-cyan">
+            <div class="step-label">
+                <span class="status stopped" id="statusIndicator"></span>
+                <span id="statusText">Ready to Start</span>
+            </div>
+            <div class="step-display" id="stepCount">0</div>
+            <div class="step-label">Steps</div>
+            
+            <div class="controls">
+                <button class="btn btn-start" onclick="startTracking()">
+                    <i class="fas fa-play"></i> Start
+                </button>
+                <button class="btn btn-pause" onclick="pauseTracking()">
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button class="btn btn-stop" onclick="stopTracking()">
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+                <button class="btn btn-reset" onclick="resetTracking()">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item glass">
+                    <div class="stat-value" id="distance">0.0</div>
+                    <div class="stat-label">Distance (km)</div>
+                </div>
+                <div class="stat-item glass">
+                    <div class="stat-value" id="calories">0</div>
+                    <div class="stat-label">Calories</div>
+                </div>
+                <div class="stat-item glass">
+                    <div class="stat-value" id="duration">00:00</div>
+                    <div class="stat-label">Duration</div>
+                </div>
+                <div class="stat-item glass">
+                    <div class="stat-value" id="speed">0.0</div>
+                    <div class="stat-label">Speed (km/h)</div>
+                </div>
+            </div>
         </div>
 
-        <div class="main-content">
-            <div class="map-container">
-                <div id="map"></div>
+        <!-- Map Section -->
+        <div class="map-section glass neon-purple">
+            <div class="map-controls">
+                <button class="btn" onclick="centerMap()">
+                    <i class="fas fa-crosshairs"></i> Center
+                </button>
+                <button class="btn" onclick="calibrateStepDetection()">
+                    <i class="fas fa-cog"></i> Calibrate
+                </button>
+                <button class="btn" onclick="saveTrack()">
+                    <i class="fas fa-save"></i> Save Track
+                </button>
+                <button class="btn" onclick="clearTrack()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
             </div>
-
-            <div class="controls-panel">
-                <div class="status inactive" id="status">
-                    <i class="fas fa-circle"></i> Ready to Track
-                </div>
-
-                <div class="stats">
-                    <div class="stat-item">
-                        <span class="stat-label"><i class="fas fa-route"></i> Distance</span>
-                        <span class="stat-value" id="distance">0.00 km</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label"><i class="fas fa-clock"></i> Time</span>
-                        <span class="stat-value" id="time">00:00:00</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label"><i class="fas fa-tachometer-alt"></i> Speed</span>
-                        <span class="stat-value" id="speed">0.0 km/h</span>
-                    </div>
-                </div>
-
-                <button class="control-btn start-btn" id="startBtn" onclick="startTracking()">
-                    <i class="fas fa-play"></i> Start Tracking
-                </button>
-                
-                <button class="control-btn stop-btn" id="stopBtn" onclick="stopTracking()" style="display: none;">
-                    <i class="fas fa-stop"></i> Stop Tracking
-                </button>
-                
-                <button class="control-btn save-btn" id="saveBtn" onclick="saveRoute()" style="display: none;">
-                    <i class="fas fa-save"></i> Save Route
-                </button>
-
-                <div class="saved-routes">
-                    <h3 style="margin-bottom: 15px; color: #333;"><i class="fas fa-history"></i> Saved Routes</h3>
-                    <div id="savedRoutesList"></div>
-                </div>
-            </div>
+            <div id="map"></div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Saved Tracks Section -->
+    <div class="saved-tracks glass neon-green" style="margin: 20px; padding: 20px;">
+        <h3><i class="fas fa-history"></i> Saved Tracks</h3>
+        <div id="tracksList">
+            <!-- Saved tracks will appear here -->
+        </div>
+    </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Global variables
         let map;
-        let currentRoute = [];
-        let routePolyline;
-        let isTracking = false;
+        let currentPosition;
+        let trackingActive = false;
+        let trackingPaused = false;
+        let steps = 0;
         let startTime;
-        let timerInterval;
-        let totalDistance = 0;
-        let lastPosition = null;
-        let currentMarker;
+        let pausedTime = 0;
+        let trackPath = [];
+        let polyline;
+        let watchId;
+        let savedTracks = JSON.parse(localStorage.getItem('savedTracks')) || [];
+        
+        // Step detection variables
+        let lastAcceleration = {x: 0, y: 0, z: 0};
+        let stepThreshold = 12; // Threshold for step detection
+        let stepCooldown = false;
+        let stepHistory = [];
+        let calibrating = false;
+
+        // Initialize the application
+        function initApp() {
+            initMap();
+            loadSavedTracks();
+            requestLocationPermission();
+            initStepDetection();
+        }
+
+        // Initialize step detection using device motion
+        function initStepDetection() {
+            if ('DeviceMotionEvent' in window) {
+                // Request permission for iOS 13+
+                if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                    DeviceMotionEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                startAccelerometer();
+                            } else {
+                                alert('Motion sensor permission denied. Step counting will not work.');
+                            }
+                        })
+                        .catch(console.error);
+                } else {
+                    // For Android and older iOS
+                    startAccelerometer();
+                }
+            } else {
+                alert('Device motion sensors not supported on this device.');
+            }
+        }
+
+        // Start accelerometer monitoring
+        function startAccelerometer() {
+            window.addEventListener('devicemotion', handleMotion);
+            console.log('Accelerometer initialized');
+        }
+
+        // Handle device motion for step detection
+        function handleMotion(event) {
+            if (!trackingActive || trackingPaused) return;
+
+            const acceleration = event.accelerationIncludingGravity;
+            if (!acceleration) return;
+
+            const x = acceleration.x || 0;
+            const y = acceleration.y || 0;
+            const z = acceleration.z || 0;
+
+            // Calculate total acceleration magnitude
+            const totalAcceleration = Math.sqrt(x*x + y*y + z*z);
+            const lastTotal = Math.sqrt(
+                lastAcceleration.x*lastAcceleration.x + 
+                lastAcceleration.y*lastAcceleration.y + 
+                lastAcceleration.z*lastAcceleration.z
+            );
+
+            // Calculate acceleration change
+            const accelerationChange = Math.abs(totalAcceleration - lastTotal);
+
+            // Add to step history for pattern analysis
+            stepHistory.push({
+                timestamp: Date.now(),
+                acceleration: totalAcceleration,
+                change: accelerationChange
+            });
+
+            // Keep only last 20 readings
+            if (stepHistory.length > 20) {
+                stepHistory.shift();
+            }
+
+            // Detect step if acceleration change exceeds threshold
+            if (accelerationChange > stepThreshold && !stepCooldown) {
+                // Additional validation using step pattern
+                if (validateStepPattern()) {
+                    registerStep();
+                    
+                    // Set cooldown to prevent double counting
+                    stepCooldown = true;
+                    setTimeout(() => {
+                        stepCooldown = false;
+                    }, 300); // 300ms cooldown
+                }
+            }
+
+            lastAcceleration = {x, y, z};
+        }
+
+        // Validate if the detected motion is actually a step
+        function validateStepPattern() {
+            if (stepHistory.length < 5) return false;
+
+            // Check for consistent pattern in recent history
+            const recentSteps = stepHistory.slice(-5);
+            const avgChange = recentSteps.reduce((sum, reading) => sum + reading.change, 0) / recentSteps.length;
+            
+            // Look for peak in acceleration change
+            const currentChange = recentSteps[recentSteps.length - 1].change;
+            
+            return currentChange > avgChange * 1.2; // Current change should be 20% above average
+        }
+
+        // Register a detected step
+        function registerStep() {
+            steps++;
+            const stepDisplay = document.getElementById('stepCount');
+            stepDisplay.textContent = steps;
+            stepDisplay.classList.add('animate');
+            setTimeout(() => stepDisplay.classList.remove('animate'), 300);
+            
+            updateCalories();
+            updateSpeed();
+
+            // Provide haptic feedback if available
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        // Calibrate step detection sensitivity
+        function calibrateStepDetection() {
+            calibrating = true;
+            alert('Walk normally for 10 steps to calibrate step detection...');
+            
+            const calibrationSteps = [];
+            const originalThreshold = stepThreshold;
+            stepThreshold = 5; // Lower threshold during calibration
+            
+            const calibrationStart = Date.now();
+            const calibrationDuration = 15000; // 15 seconds
+            
+            const calibrationInterval = setInterval(() => {
+                if (Date.now() - calibrationStart > calibrationDuration) {
+                    clearInterval(calibrationInterval);
+                    
+                    if (calibrationSteps.length > 0) {
+                        const avgChange = calibrationSteps.reduce((sum, change) => sum + change, 0) / calibrationSteps.length;
+                        stepThreshold = avgChange * 0.8; // Set threshold to 80% of average detected change
+                        alert(`Calibration complete! New threshold: ${stepThreshold.toFixed(2)}`);
+                    } else {
+                        stepThreshold = originalThreshold;
+                        alert('Calibration failed. Using default threshold.');
+                    }
+                    
+                    calibrating = false;
+                }
+            }, 100);
+        }
 
         // Initialize map
         function initMap() {
-            map = L.map('map').setView([-6.2088, 106.8456], 13); // Jakarta default
-
+            map = L.map('map').setView([51.505, -0.09], 13);
+            
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            // Try to get user's location
+            map.on('click', function(e) {
+                if (trackingActive && !trackingPaused) {
+                    addPointToTrack(e.latlng.lat, e.latlng.lng);
+                }
+            });
+        }
+
+        // Request location permission
+        function requestLocationPermission() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    map.setView([lat, lng], 15);
-                    
-                    currentMarker = L.marker([lat, lng]).addTo(map)
-                        .bindPopup('Your Location').openPopup();
-                });
-            }
-        }
-
-        function startTracking() {
-            if (!navigator.geolocation) {
-                showNotification('Geolocation is not supported by this browser.', 'error');
-                return;
-            }
-
-            isTracking = true;
-            currentRoute = [];
-            totalDistance = 0;
-            startTime = new Date();
-            
-            document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('stopBtn').style.display = 'block';
-            document.getElementById('status').className = 'status active';
-            document.getElementById('status').innerHTML = '<i class="fas fa-circle"></i> Tracking Active';
-
-            // Clear previous route
-            if (routePolyline) {
-                map.removeLayer(routePolyline);
-            }
-
-            // Start timer
-            timerInterval = setInterval(updateTimer, 1000);
-
-            // Start tracking position
-            trackPosition();
-            
-            showNotification('Tracking started!', 'success');
-        }
-
-        function stopTracking() {
-            isTracking = false;
-            
-            document.getElementById('stopBtn').style.display = 'none';
-            document.getElementById('saveBtn').style.display = 'block';
-            document.getElementById('status').className = 'status inactive';
-            document.getElementById('status').innerHTML = '<i class="fas fa-circle"></i> Tracking Stopped';
-
-            clearInterval(timerInterval);
-            
-            showNotification('Tracking stopped!', 'success');
-        }
-
-        function trackPosition() {
-            if (!isTracking) return;
-
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const currentPos = [lat, lng];
-
-                currentRoute.push(currentPos);
-
-                // Update marker position
-                if (currentMarker) {
-                    currentMarker.setLatLng(currentPos);
-                } else {
-                    currentMarker = L.marker(currentPos).addTo(map);
-                }
-
-                // Calculate distance
-                if (lastPosition) {
-                    const distance = calculateDistance(lastPosition, currentPos);
-                    totalDistance += distance;
-                    updateStats();
-                }
-
-                lastPosition = currentPos;
-
-                // Update route on map
-                if (routePolyline) {
-                    map.removeLayer(routePolyline);
-                }
-
-                if (currentRoute.length > 1) {
-                    routePolyline = L.polyline(currentRoute, {
-                        color: '#e74c3c',
-                        weight: 4,
-                        opacity: 0.8
-                    }).addTo(map);
-                }
-
-                // Center map on current position
-                map.setView(currentPos, map.getZoom());
-
-                // Continue tracking
-                setTimeout(() => {
-                    if (isTracking) trackPosition();
-                }, 3000); // Update every 3 seconds
-
-            }, function(error) {
-                console.error('Error getting location:', error);
-                showNotification('Error getting location: ' + error.message, 'error');
-            }, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            });
-        }
-
-        function calculateDistance(pos1, pos2) {
-            const R = 6371; // Earth's radius in km
-            const dLat = (pos2[0] - pos1[0]) * Math.PI / 180;
-            const dLon = (pos2[1] - pos1[1]) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(pos1[0] * Math.PI / 180) * Math.cos(pos2[0] * Math.PI / 180) *
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-
-        function updateStats() {
-            document.getElementById('distance').textContent = totalDistance.toFixed(2) + ' km';
-            
-            if (startTime) {
-                const currentTime = new Date();
-                const timeDiff = (currentTime - startTime) / 1000; // in seconds
-                const hours = Math.floor(timeDiff / 3600);
-                const avgSpeed = timeDiff > 0 ? (totalDistance / (timeDiff / 3600)) : 0;
-                document.getElementById('speed').textContent = avgSpeed.toFixed(1) + ' km/h';
-            }
-        }
-
-        function updateTimer() {
-            if (!startTime) return;
-            
-            const currentTime = new Date();
-            const timeDiff = currentTime - startTime;
-            const hours = Math.floor(timeDiff / 3600000);
-            const minutes = Math.floor((timeDiff % 3600000) / 60000);
-            const seconds = Math.floor((timeDiff % 60000) / 1000);
-            
-            document.getElementById('time').textContent = 
-                String(hours).padStart(2, '0') + ':' +
-                String(minutes).padStart(2, '0') + ':' +
-                String(seconds).padStart(2, '0');
-        }
-
-        function saveRoute() {
-            if (currentRoute.length === 0) {
-                showNotification('No route to save!', 'error');
-                return;
-            }
-
-            const route = {
-                id: Date.now(),
-                date: new Date().toLocaleString('id-ID'),
-                distance: totalDistance.toFixed(2),
-                duration: document.getElementById('time').textContent,
-                coordinates: currentRoute
-            };
-
-            // Get existing routes from memory
-            let savedRoutes = window.savedRoutes || [];
-            savedRoutes.push(route);
-            window.savedRoutes = savedRoutes;
-
-            displaySavedRoutes();
-            resetTracking();
-            
-            showNotification('Route saved successfully!', 'success');
-        }
-
-        function resetTracking() {
-            document.getElementById('saveBtn').style.display = 'none';
-            document.getElementById('startBtn').style.display = 'block';
-            document.getElementById('distance').textContent = '0.00 km';
-            document.getElementById('time').textContent = '00:00:00';
-            document.getElementById('speed').textContent = '0.0 km/h';
-            
-            totalDistance = 0;
-            currentRoute = [];
-            lastPosition = null;
-            startTime = null;
-            
-            if (routePolyline) {
-                map.removeLayer(routePolyline);
-            }
-        }
-
-        function displaySavedRoutes() {
-            const savedRoutes = window.savedRoutes || [];
-            const container = document.getElementById('savedRoutesList');
-            container.innerHTML = '';
-
-            if (savedRoutes.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No saved routes yet</p>';
-                return;
-            }
-
-            savedRoutes.reverse().forEach(route => {
-                const routeElement = document.createElement('div');
-                routeElement.className = 'route-item';
-                routeElement.innerHTML = `
-                    <button class="delete-btn" onclick="deleteRoute(${route.id})">×</button>
-                    <div class="route-date">${route.date}</div>
-                    <div class="route-distance">${route.distance} km • ${route.duration}</div>
-                `;
-                
-                routeElement.addEventListener('click', (e) => {
-                    if (e.target.className !== 'delete-btn') {
-                        showRoute(route);
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        map.setView([lat, lng], 15);
+                        currentPosition = L.marker([lat, lng]).addTo(map)
+                            .bindPopup('Your current location')
+                            .openPopup();
+                    },
+                    (error) => {
+                        console.error('Location access denied:', error);
+                        alert('Location access is required for GPS tracking');
                     }
-                });
-                
-                container.appendChild(routeElement);
-            });
+                );
+            }
         }
 
-        function showRoute(route) {
-            if (routePolyline) {
-                map.removeLayer(routePolyline);
+        // Start tracking
+        function startTracking() {
+            if (trackingPaused) {
+                // Resume from pause
+                trackingPaused = false;
+                updateStatus('active', 'Tracking Active');
+            } else {
+                // Start new tracking
+                trackingActive = true;
+                trackingPaused = false;
+                startTime = Date.now() - pausedTime;
+                trackPath = [];
+                updateStatus('active', 'Tracking Active');
+                
+                // Start GPS tracking
+                if (navigator.geolocation) {
+                    watchId = navigator.geolocation.watchPosition(
+                        updatePosition,
+                        (error) => console.error('GPS Error:', error),
+                        {
+                            enableHighAccuracy: true,
+                            maximumAge: 1000,
+                            timeout: 5000
+                        }
+                    );
+                }
             }
+            
+            // Start duration timer
+            updateDuration();
+        }
 
-            routePolyline = L.polyline(route.coordinates, {
-                color: '#3498db',
+        // Pause tracking
+        function pauseTracking() {
+            if (trackingActive && !trackingPaused) {
+                trackingPaused = true;
+                updateStatus('paused', 'Tracking Paused');
+            }
+        }
+
+        // Stop tracking
+        function stopTracking() {
+            trackingActive = false;
+            trackingPaused = false;
+            updateStatus('stopped', 'Tracking Stopped');
+            
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        }
+
+        // Reset tracking
+        function resetTracking() {
+            stopTracking();
+            steps = 0;
+            pausedTime = 0;
+            trackPath = [];
+            
+            document.getElementById('stepCount').textContent = '0';
+            document.getElementById('distance').textContent = '0.0';
+            document.getElementById('calories').textContent = '0';
+            document.getElementById('duration').textContent = '00:00';
+            document.getElementById('speed').textContent = '0.0';
+            
+            clearTrack();
+            updateStatus('stopped', 'Ready to Start');
+        }
+
+        // Update position during GPS tracking
+        function updatePosition(position) {
+            if (!trackingActive || trackingPaused) return;
+            
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            if (currentPosition) {
+                map.removeLayer(currentPosition);
+            }
+            
+            currentPosition = L.marker([lat, lng]).addTo(map);
+            addPointToTrack(lat, lng);
+            map.setView([lat, lng]);
+        }
+
+        // Add point to track
+        function addPointToTrack(lat, lng) {
+            trackPath.push([lat, lng]);
+            
+            if (polyline) {
+                map.removeLayer(polyline);
+            }
+            
+            polyline = L.polyline(trackPath, {
+                color: '#00ffff',
                 weight: 4,
                 opacity: 0.8
             }).addTo(map);
-
-            map.fitBounds(routePolyline.getBounds());
             
-            showNotification('Route displayed on map', 'success');
+            updateDistance();
         }
 
-        function deleteRoute(routeId) {
-            let savedRoutes = window.savedRoutes || [];
-            savedRoutes = savedRoutes.filter(route => route.id !== routeId);
-            window.savedRoutes = savedRoutes;
+        // Update distance calculation
+        function updateDistance() {
+            if (trackPath.length < 2) return;
             
-            displaySavedRoutes();
-            showNotification('Route deleted', 'success');
+            let totalDistance = 0;
+            for (let i = 1; i < trackPath.length; i++) {
+                totalDistance += calculateDistance(
+                    trackPath[i-1][0], trackPath[i-1][1],
+                    trackPath[i][0], trackPath[i][1]
+                );
+            }
+            
+            document.getElementById('distance').textContent = (totalDistance / 1000).toFixed(2);
         }
 
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
+        // Calculate distance between two points
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth's radius in meters
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
         }
 
-        // Initialize app
-        window.onload = function() {
-            initMap();
-            displaySavedRoutes();
-        };
+        // Update calories (rough estimation)
+        function updateCalories() {
+            const calories = Math.floor(steps * 0.04); // ~0.04 calories per step
+            document.getElementById('calories').textContent = calories;
+        }
+
+        // Update duration
+        function updateDuration() {
+            if (!trackingActive) return;
+            
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            
+            document.getElementById('duration').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (!trackingPaused) {
+                setTimeout(updateDuration, 1000);
+            }
+        }
+
+        // Update speed
+        function updateSpeed() {
+            const distance = parseFloat(document.getElementById('distance').textContent);
+            const duration = document.getElementById('duration').textContent;
+            const [minutes, seconds] = duration.split(':').map(Number);
+            const hours = (minutes + seconds/60) / 60;
+            
+            const speed = hours > 0 ? (distance / hours).toFixed(1) : '0.0';
+            document.getElementById('speed').textContent = speed;
+        }
+
+        // Update status indicator
+        function updateStatus(status, text) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.className = `status ${status}`;
+            statusText.textContent = text;
+        }
+
+        // Center map on current location
+        function centerMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    map.setView([position.coords.latitude, position.coords.longitude], 15);
+                });
+            }
+        }
+
+        // Save current track
+        function saveTrack() {
+            if (trackPath.length === 0) {
+                alert('No track data to save!');
+                return;
+            }
+            
+            const trackName = prompt('Enter track name:', `Track ${savedTracks.length + 1}`);
+            if (!trackName) return;
+            
+            const track = {
+                id: Date.now(),
+                name: trackName,
+                date: new Date().toLocaleDateString(),
+                steps: steps,
+                distance: document.getElementById('distance').textContent,
+                duration: document.getElementById('duration').textContent,
+                calories: document.getElementById('calories').textContent,
+                path: [...trackPath]
+            };
+            
+            savedTracks.push(track);
+            localStorage.setItem('savedTracks', JSON.stringify(savedTracks));
+            loadSavedTracks();
+            
+            alert('Track saved successfully!');
+        }
+
+        // Clear current track
+        function clearTrack() {
+            if (polyline) {
+                map.removeLayer(polyline);
+                polyline = null;
+            }
+            trackPath = [];
+        }
+
+        // Load saved tracks
+        function loadSavedTracks() {
+            const tracksList = document.getElementById('tracksList');
+            tracksList.innerHTML = '';
+            
+            if (savedTracks.length === 0) {
+                tracksList.innerHTML = '<p style="text-align: center; color: #666;">No saved tracks yet</p>';
+                return;
+            }
+            
+            savedTracks.forEach(track => {
+                const trackElement = document.createElement('div');
+                trackElement.className = 'track-item';
+                trackElement.innerHTML = `
+                    <div class="track-info">
+                        <div class="track-name">${track.name}</div>
+                        <div class="track-stats">
+                            ${track.date} • ${track.steps} steps • ${track.distance} km • ${track.duration} • ${track.calories} cal
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn" onclick="viewTrack(${track.id})" style="margin-right: 10px;">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn" onclick="deleteTrack(${track.id})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+                tracksList.appendChild(trackElement);
+            });
+        }
+
+        // View saved track
+        function viewTrack(trackId) {
+            const track = savedTracks.find(t => t.id === trackId);
+            if (!track) return;
+            
+            clearTrack();
+            trackPath = [...track.path];
+            
+            if (trackPath.length > 0) {
+                polyline = L.polyline(trackPath, {
+                    color: '#8a2be2',
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(map);
+                
+                map.fitBounds(polyline.getBounds());
+            }
+        }
+
+        // Delete saved track
+        function deleteTrack(trackId) {
+            if (confirm('Are you sure you want to delete this track?')) {
+                savedTracks = savedTracks.filter(t => t.id !== trackId);
+                localStorage.setItem('savedTracks', JSON.stringify(savedTracks));
+                loadSavedTracks();
+            }
+        }
+
+        // Initialize app when page loads
+        window.addEventListener('load', initApp);
     </script>
 </body>
 </html>
